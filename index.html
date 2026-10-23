@@ -9219,6 +9219,24 @@ function loadConfig(st, fname) {
   setStatus((fname ? fname + ' geöffnet' : 'Konfiguration geöffnet') + ' (' + made.length + ' Fenster)' + (errs.length ? ', Fehler: ' + errs.join('; ') : '') + '.', errs.length > 0);
 }
 
+// Anwendung (index.html) von GitHub laden und als Datei speichern, z. B. für den Raspberry Pi
+const APP_URL = 'https://raw.githubusercontent.com/andreaskiener1/Lab10/main/index.html';
+async function downloadApp() {
+  setStatus('Lade die Anwendung von GitHub …');
+  try {
+    const r = await fetch(APP_URL, { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const u = URL.createObjectURL(new Blob([await r.text()], { type: 'text/html' }));
+    const a = h('a', { href: u, download: 'index.html' });
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(u), 10000);
+    setStatus('index.html wurde zum Herunterladen angeboten.');
+  } catch (e) {
+    window.open(APP_URL, '_blank', 'noopener');
+    setStatus('Direktes Speichern nicht möglich (' + (e && e.message ? e.message : e) + '). Die Datei wurde in einem neuen Tab geöffnet: mit Strg+S speichern.', true);
+  }
+}
+
 let fileIn = null;
 function openConfig() {
   if (!fileIn) {
@@ -9238,6 +9256,7 @@ buildMenu(document.getElementById('mainmenu'), [
   { label: 'Datei', items: [
     { label: 'Speichern …', accel: 'Strg+S', fn: saveConfig },
     { label: 'Öffnen …', accel: 'Strg+O', fn: openConfig },
+    { label: 'Anwendung von GitHub herunterladen', fn: downloadApp },
     { sep: true },
     { label: 'Beenden', accel: 'Alt+X', fn: beenden } ] },
   { label: 'Tools', items: [
